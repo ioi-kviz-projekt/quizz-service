@@ -32,6 +32,10 @@ public class QuizInstanceEntity extends BaseEntity {
     @Column(name = "question_index")
     private int questionIndex;
     
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private RoomEntity room;
+    
     public boolean isActive() {
         return active;
     }
@@ -70,5 +74,13 @@ public class QuizInstanceEntity extends BaseEntity {
     
     public void setStateEndsAt(Date stateEndsAt) {
         this.stateEndsAt = stateEndsAt;
+    }
+    
+    public RoomEntity getRoom() {
+        return room;
+    }
+    
+    public void setRoom(RoomEntity room) {
+        this.room = room;
     }
 }

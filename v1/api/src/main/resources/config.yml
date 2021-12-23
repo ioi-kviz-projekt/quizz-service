@@ -13,7 +13,7 @@ kumuluzee:
     servlet:
       allow-origin: "*"
       supported-methods: "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD"
-      exposed-headers: "X-Total-Count"
+      exposed-headers: "X-Total-Count,X-Device-Id"
   openapi-mp:
     enabled: true
     servlet:
@@ -42,8 +42,15 @@ kumuluzee:
       username: postgres
       password: postgres
       pool:
-        max-size: 80
+        max-size: 5
+kee-auth:
+  oidc:
+    auto-configure: true,
+    well-known-url: https://keycloak.mjamsek.com/auth/realms/ioi-projekt/.well-known/openid-configuration
 quizz:
   durations:
     loading: 3
     question: 5
+  groups:
+    members:
+      limit: 4

@@ -15,6 +15,12 @@ import java.util.Set;
 public class TestEndpoint {
     
     @GET
+    @Path("/echo")
+    public Response echoTest() {
+        return Response.ok().build();
+    }
+    
+    @GET
     public Response test() {
         Set<Session> sessions = SocketSessionContext.getAllSessions();
     

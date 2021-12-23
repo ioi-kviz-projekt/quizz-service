@@ -5,18 +5,16 @@ import com.kumuluz.ee.logs.Logger;
 import ioi.quizz.context.SocketSessionContext;
 import ioi.quizz.lib.UserAnswer;
 import ioi.quizz.lib.enums.SocketMessageType;
-import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.lib.ws.SocketMessage;
 import ioi.quizz.services.AnswerService;
 import ioi.quizz.services.SocketService;
 import ioi.quizz.utils.DeserializationUtils;
-import ioi.quizz.utils.SocketUtils;
 import ioi.quizz.utils.TokenUtils;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.control.ActivateRequestContext;
 import javax.inject.Inject;
 import javax.websocket.Session;
-import java.util.concurrent.CompletableFuture;
 
 @ApplicationScoped
 public class SocketServiceImpl implements SocketService {
@@ -34,6 +32,7 @@ public class SocketServiceImpl implements SocketService {
     }
     
     @Override
+    @ActivateRequestContext
     public void handleMessage(SocketMessage message, Session session) {
         if (message.getType().equals(SocketMessageType.PING.getType())) {
             LOG.info("Received PING from session with id: " + session.getId());
@@ -43,26 +42,30 @@ public class SocketServiceImpl implements SocketService {
             return;
         }
         
+        if (message.getType().equals(SocketMessageType.REGISTRATION.getType())) {
+            LOG.info("Received REGISTRATION from session with id: " + session.getId());
+            String userId = TokenUtils.getUserId(message.getAccessToken());
+            session.getUserProperties().put("userId", userId);
+            return;
+        }
+        
         if (message.getType().equals(SocketMessageType.ANSWER.getType()) && message.getAccessToken() != null) {
             LOG.info("Received ANSWER from session with id: " + session.getId());
             String userId = TokenUtils.getUserId(message.getAccessToken());
             UserAnswer payload = DeserializationUtils.deserializePayload(message.getPayload(), UserAnswer.class)
                 .orElseThrow();
             payload.setUserId(userId);
-            CompletableFuture.runAsync(() -> {
-                answerService.saveUserAnswer(payload);
-            });
-            return;
+            answerService.saveUserAnswer(payload);
         }
         
-        if (message.getType().equals(SocketMessageType.REQUEST_SUMMARY.getType()) && message.getAccessToken() != null) {
+        /*if (message.getType().equals(SocketMessageType.REQUEST_SUMMARY.getType()) && message.getAccessToken() != null) {
             LOG.info("Received REQUEST_SUMMARY from session with id: " + session.getId());
             String userId = TokenUtils.getUserId(message.getAccessToken());
             QuizSummary summary = answerService.getUserSummary(userId, message.getPayload());
             SocketMessage summaryMessage = SocketUtils.summary(summary);
             sendMessage(summaryMessage, session);
             return;
-        }
+        }*/
     }
     
     @Override

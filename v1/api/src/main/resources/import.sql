@@ -1,3 +1,5 @@
+INSERT INTO rooms(id, created_at, updated_at, admin_id, room_number) VALUES ('418a3424-a827-471b-b189-f0f91c3a65ed', NOW(), NOW(), '', '123');
+
 INSERT INTO themes(id, created_at, updated_at, position, title) VALUES ('28fa3415-f898-4a27-93fc-b410ae5242f3', NOW(), NOW(), 1, 'Tematika 1');
 INSERT INTO themes(id, created_at, updated_at, position, title) VALUES ('2f304a76-e062-4ad7-a26d-e0550b4716b2', NOW(), NOW(), 3, 'Tematika 2');
 INSERT INTO themes(id, created_at, updated_at, position, title) VALUES ('6e3c260a-4918-4ea9-97c1-894146bcf48c', NOW(), NOW(), 2, 'Tematika 3');

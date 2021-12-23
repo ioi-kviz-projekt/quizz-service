@@ -5,7 +5,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "user_answers")
 @NamedQueries({
-    @NamedQuery(name = UserAnswerEntity.GET_USER_ANSWERS, query = "SELECT ua FROM UserAnswerEntity ua WHERE ua.userId = :userId AND ua.quiz.id = :quizId")
+    @NamedQuery(name = UserAnswerEntity.GET_USER_ANSWERS, query = "SELECT ua FROM UserAnswerEntity ua WHERE ua.quiz.id = :quizId")
 })
 public class UserAnswerEntity extends BaseEntity {
     

@@ -71,6 +71,14 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.mjamsek.rest</groupId>
+            <artifactId>rest-utils</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mjamsek.auth</groupId>
+            <artifactId>kee-auth</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

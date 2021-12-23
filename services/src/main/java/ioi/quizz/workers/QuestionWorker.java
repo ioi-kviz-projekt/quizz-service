@@ -5,19 +5,20 @@ import ioi.quizz.persistence.QuizQuestionEntity;
 import ioi.quizz.persistence.ThemeQuestionEntity;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.*;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@ApplicationScoped
+@RequestScoped
 public class QuestionWorker {
     
     @Inject
-    private EntityManagerFactory emFactory;
+    private EntityManager em;
     
     public Optional<ThemeQuestionEntity> getNextQuestion(String quizId) {
-        EntityManager em = emFactory.createEntityManager();
+        // EntityManager em = emFactory.createEntityManager();
         TypedQuery<QuizQuestionEntity> query = em.createNamedQuery(QuizQuestionEntity.GET_NEXT_QUESTION, QuizQuestionEntity.class);
         query.setParameter("quizId", quizId);
         query.setMaxResults(1);
@@ -34,7 +35,7 @@ public class QuestionWorker {
     }
     
     public int countRemainingQuestions(String quizId) {
-        EntityManager em = emFactory.createEntityManager();
+        // EntityManager em = emFactory.createEntityManager();
         TypedQuery<Long> query = em.createNamedQuery(QuizQuestionEntity.COUNT_REMAINING_QUESTIONS, Long.class);
         query.setParameter("quizId", quizId);
         
@@ -52,7 +53,7 @@ public class QuestionWorker {
     }
     
     public Stream<QuestionAnswerEntity> getQuestionAnswers(String questionId) {
-        EntityManager em = emFactory.createEntityManager();
+        // EntityManager em = emFactory.createEntityManager();
         TypedQuery<QuestionAnswerEntity> query = em.createNamedQuery(QuestionAnswerEntity.GET_ANSWERS, QuestionAnswerEntity.class);
         query.setParameter("questionId", questionId);
         

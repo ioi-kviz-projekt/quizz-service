@@ -15,6 +15,9 @@ public class QuizzConfig {
     @ConfigValue("durations.question")
     private int questionDuration;
     
+    @ConfigValue("groups.members.limit")
+    private int groupMembersLimit;
+    
     public int getLoadingDuration() {
         return loadingDuration;
     }
@@ -29,5 +32,13 @@ public class QuizzConfig {
     
     public void setQuestionDuration(int questionDuration) {
         this.questionDuration = questionDuration;
+    }
+    
+    public int getGroupMembersLimit() {
+        return groupMembersLimit;
+    }
+    
+    public void setGroupMembersLimit(int groupMembersLimit) {
+        this.groupMembersLimit = groupMembersLimit;
     }
 }

@@ -2,6 +2,7 @@ package ioi.quizz.lib.enums;
 
 public enum SocketMessageType {
     PING("PING"),
+    REGISTRATION("REGISTRATION"),
     WAITING("WAITING"),
     START("START"),
     QUESTION("QUESTION"),

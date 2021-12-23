@@ -21,6 +21,10 @@ public class ThemeQuestionEntity extends BaseEntity {
     @JoinColumn(name = "theme_id")
     private ThemeEntity theme;
     
+    @ManyToOne
+    @JoinColumn(name = "room_id")
+    private RoomEntity room;
+    
     public String getHtmlContent() {
         return htmlContent;
     }
@@ -43,5 +47,13 @@ public class ThemeQuestionEntity extends BaseEntity {
     
     public void setTheme(ThemeEntity theme) {
         this.theme = theme;
+    }
+    
+    public RoomEntity getRoom() {
+        return room;
+    }
+    
+    public void setRoom(RoomEntity room) {
+        this.room = room;
     }
 }

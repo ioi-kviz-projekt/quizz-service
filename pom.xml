@@ -27,6 +27,8 @@
         <jackson.version>2.12.3</jackson.version>
         <postgres.version>42.2.21</postgres.version>
         <jjwt.version>0.9.1</jjwt.version>
+        <rest-utils.version>2.1.0</rest-utils.version>
+        <kee-auth.version>2.0.0-SNAPSHOT</kee-auth.version>
 
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
         <download-maven-plugin.version>1.4.2</download-maven-plugin.version>
@@ -99,6 +101,16 @@
                 <version>${kumuluzee-logs.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.mjamsek.auth</groupId>
+                <artifactId>kee-auth</artifactId>
+                <version>${kee-auth.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.mjamsek.rest</groupId>
+                <artifactId>rest-utils</artifactId>
+                <version>${rest-utils.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
