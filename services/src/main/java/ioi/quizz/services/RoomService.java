@@ -15,6 +15,8 @@ public interface RoomService {
     
     Optional<RoomEntity> getRoomByNumber(String roomNumber);
     
+    Optional<RoomEntity> getRoomEntity(String roomId);
+    
     List<Room> getTeacherRooms(String teacherId);
     
 }

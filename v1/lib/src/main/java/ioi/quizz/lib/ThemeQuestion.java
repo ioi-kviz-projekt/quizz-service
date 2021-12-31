@@ -2,28 +2,18 @@ package ioi.quizz.lib;
 
 public class ThemeQuestion extends BaseType {
     
-    private String htmlContent;
-    
-    private String textContent;
+    private String content;
     
     private Theme theme;
     
     private String themeId;
     
-    public String getHtmlContent() {
-        return htmlContent;
+    public String getContent() {
+        return content;
     }
     
-    public void setHtmlContent(String htmlContent) {
-        this.htmlContent = htmlContent;
-    }
-    
-    public String getTextContent() {
-        return textContent;
-    }
-    
-    public void setTextContent(String textContent) {
-        this.textContent = textContent;
+    public void setContent(String content) {
+        this.content = content;
     }
     
     public Theme getTheme() {

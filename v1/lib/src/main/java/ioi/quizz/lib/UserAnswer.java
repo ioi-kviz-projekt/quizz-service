@@ -2,21 +2,11 @@ package ioi.quizz.lib;
 
 public class UserAnswer extends BaseType {
     
-    private String userId;
-    
     private String questionId;
     
     private String answerId;
     
-    private String quizId;
-    
-    public String getUserId() {
-        return userId;
-    }
-    
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    private String roomId;
     
     public String getQuestionId() {
         return questionId;
@@ -34,11 +24,11 @@ public class UserAnswer extends BaseType {
         this.answerId = answerId;
     }
     
-    public String getQuizId() {
-        return quizId;
+    public String getRoomId() {
+        return roomId;
     }
     
-    public void setQuizId(String quizId) {
-        this.quizId = quizId;
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
     }
 }

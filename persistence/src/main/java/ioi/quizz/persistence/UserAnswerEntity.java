@@ -11,9 +11,6 @@ public class UserAnswerEntity extends BaseEntity {
     
     public static final String GET_USER_ANSWERS = "UserAnswerEntity.getUserAnswers";
     
-    @Column(name = "user_id")
-    private String userId;
-    
     @ManyToOne
     @JoinColumn(name = "question_id")
     private ThemeQuestionEntity question;
@@ -26,12 +23,16 @@ public class UserAnswerEntity extends BaseEntity {
     @JoinColumn(name = "quiz_id")
     private QuizInstanceEntity quiz;
     
-    public String getUserId() {
-        return userId;
+    @ManyToOne
+    @JoinColumn(name = "student_id")
+    private StudentEntity student;
+    
+    public StudentEntity getStudent() {
+        return student;
     }
     
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setStudent(StudentEntity student) {
+        this.student = student;
     }
     
     public ThemeQuestionEntity getQuestion() {

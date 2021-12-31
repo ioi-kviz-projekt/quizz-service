@@ -9,12 +9,14 @@ import java.util.Date;
 @Table(name = "quiz_instances")
 @NamedQueries({
     @NamedQuery(name = QuizInstanceEntity.GET_BY_PASSKEY, query = "SELECT q FROM QuizInstanceEntity q WHERE q.passkey = :passkey"),
-    @NamedQuery(name = QuizInstanceEntity.GET_ACTIVES, query = "SELECT q FROM QuizInstanceEntity q WHERE q.active = true")
+    @NamedQuery(name = QuizInstanceEntity.GET_ACTIVES, query = "SELECT q FROM QuizInstanceEntity q WHERE q.active = true"),
+    @NamedQuery(name = QuizInstanceEntity.GET_ACTIVE_IN_ROOM, query = "SELECT q FROM QuizInstanceEntity q WHERE q.room.id = :roomId AND q.active = true")
 })
 public class QuizInstanceEntity extends BaseEntity {
     
     public static final String GET_BY_PASSKEY = "QuizInstanceEntity.getByPasskey";
     public static final String GET_ACTIVES = "QuizInstanceEntity.getActives";
+    public static final String GET_ACTIVE_IN_ROOM = "QuizInstanceEntity.getActiveInRoom";
  
     @Column(name = "active")
     private boolean active;

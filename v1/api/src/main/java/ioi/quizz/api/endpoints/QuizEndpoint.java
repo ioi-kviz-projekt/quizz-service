@@ -1,7 +1,7 @@
 package ioi.quizz.api.endpoints;
 
+import ioi.quizz.config.QuizzConstants;
 import ioi.quizz.lib.QuizInstance;
-import ioi.quizz.lib.requests.QuizPasskey;
 import ioi.quizz.services.QuizService;
 
 import javax.enterprise.context.RequestScoped;
@@ -19,15 +19,18 @@ public class QuizEndpoint {
     @Inject
     private QuizService quizService;
     
-    @POST
-    public Response getQuiz(QuizPasskey passkey) {
-        return Response.ok(quizService.getQuizByPasskey(passkey)).build();
+    @GET
+    @Path("/{roomId}/active")
+    public Response getActiveQuiz(@PathParam("roomId") String roomId,
+                                  @HeaderParam(QuizzConstants.DEVICE_ID_HEADER) String deviceId) {
+        QuizInstance activeQuiz = quizService.getActiveQuizState(deviceId, roomId);
+        return Response.ok(activeQuiz).build();
     }
     
     @POST
-    @Path("/new")
-    public Response createQuizInstance() {
-        QuizInstance instance = quizService.createInstance();
+    @Path("/{roomId}/new")
+    public Response createQuizInstance(@PathParam("roomId") String roomId) {
+        QuizInstance instance = quizService.createInstance(roomId);
         return Response.ok(instance).build();
     }
     
@@ -38,9 +41,4 @@ public class QuizEndpoint {
         return Response.noContent().build();
     }
     
-    /*@GET
-    @Path("/summary/{id}")
-    public Response getQuizzSummary(@PathParam("id") String id) {
-    
-    }*/
 }

@@ -94,6 +94,11 @@ public class RoomServiceImpl implements RoomService {
     }
     
     @Override
+    public Optional<RoomEntity> getRoomEntity(String roomId) {
+        return Optional.ofNullable(em.find(RoomEntity.class, roomId));
+    }
+    
+    @Override
     public List<Room> getTeacherRooms(String teacherId) {
         TypedQuery<RoomEntity> query = em.createNamedQuery(RoomEntity.GET_BY_ADMIN, RoomEntity.class);
         query.setParameter("adminId", teacherId);

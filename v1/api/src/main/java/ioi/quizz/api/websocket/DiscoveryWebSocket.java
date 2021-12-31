@@ -2,10 +2,11 @@ package ioi.quizz.api.websocket;
 
 import com.kumuluz.ee.logs.LogManager;
 import com.kumuluz.ee.logs.Logger;
+import ioi.quizz.context.DiscoverySessionContext;
 import ioi.quizz.lib.ws.SocketMessage;
 import ioi.quizz.mappers.SocketMessageDecoder;
 import ioi.quizz.mappers.SocketMessageEncoder;
-import ioi.quizz.workers.WebsocketWorker;
+import ioi.quizz.workers.DiscoveryWorker;
 
 import javax.inject.Inject;
 import javax.websocket.*;
@@ -13,32 +14,31 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 
-
-@ServerEndpoint(value = "/ws/quiz", encoders = SocketMessageEncoder.class, decoders = SocketMessageDecoder.class)
-public class QuizWebSocket {
+@ServerEndpoint(value = "/ws/discovery", encoders = SocketMessageEncoder.class, decoders = SocketMessageDecoder.class)
+public class DiscoveryWebSocket {
+    
+    private static final Logger LOG = LogManager.getLogger(DiscoveryWebSocket.class.getName());
     
     @Inject
-    private WebsocketWorker wsWorker;
-    
-    private static final Logger LOG = LogManager.getLogger(QuizWebSocket.class.getName());
+    private DiscoveryWorker discoveryWorker;
     
     @OnMessage
     public void onMessage(SocketMessage message, Session session) {
         if (message != null) {
-            wsWorker.handleMessage(message, session);
+            discoveryWorker.handleMessage(message, session);
         }
     }
     
     @OnOpen
     public void onOpen(Session session) {
         LOG.debug("New socket connection with id {}", session.getId());
-        wsWorker.openSession(session);
+        discoveryWorker.registerSocketSession(session);
     }
     
     @OnClose
     public void onClose(Session session) {
         LOG.debug("Closing session with id {}", session.getId());
-        wsWorker.closeSession(session);
+        DiscoverySessionContext.closeSession(session);
     }
     
     @OnError

@@ -7,9 +7,7 @@ import java.util.Map;
 
 public interface AnswerService {
     
-    void saveUserAnswer(UserAnswer userAnswer);
-    
-    QuizSummary getUserSummary(String userId, String quizId);
+    void saveUserAnswer(UserAnswer userAnswer, String deviceId);
     
     Map<String, QuizSummary> getParticipantsSummaries(String quizId);
 }

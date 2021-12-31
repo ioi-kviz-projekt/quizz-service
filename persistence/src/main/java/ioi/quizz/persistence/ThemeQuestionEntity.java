@@ -11,11 +11,8 @@ public class ThemeQuestionEntity extends BaseEntity {
     
     public static final String GET_RAND_QS = "ThemeQuestionEntity.getRandQs";
     
-    @Column(name = "html_content", columnDefinition = "TEXT")
-    private String htmlContent;
-    
-    @Column(name = "text_content", columnDefinition = "TEXT")
-    private String textContent;
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
     
     @ManyToOne
     @JoinColumn(name = "theme_id")
@@ -25,20 +22,12 @@ public class ThemeQuestionEntity extends BaseEntity {
     @JoinColumn(name = "room_id")
     private RoomEntity room;
     
-    public String getHtmlContent() {
-        return htmlContent;
+    public String getContent() {
+        return content;
     }
     
-    public void setHtmlContent(String htmlContent) {
-        this.htmlContent = htmlContent;
-    }
-    
-    public String getTextContent() {
-        return textContent;
-    }
-    
-    public void setTextContent(String textContent) {
-        this.textContent = textContent;
+    public void setContent(String content) {
+        this.content = content;
     }
     
     public ThemeEntity getTheme() {

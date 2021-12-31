@@ -4,8 +4,9 @@ import ioi.quizz.lib.UserAnswer;
 import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.persistence.*;
 import ioi.quizz.services.AnswerService;
+import ioi.quizz.services.QuizService;
+import ioi.quizz.services.StudentService;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -14,7 +15,7 @@ import javax.persistence.TypedQuery;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @RequestScoped
 public class AnswerServiceImpl implements AnswerService {
@@ -22,67 +23,38 @@ public class AnswerServiceImpl implements AnswerService {
     @Inject
     private EntityManager em;
     
-    @Override
-    public void saveUserAnswer(UserAnswer userAnswer) {
-        // EntityManager em = persistenceProviderBean.getEntityManager();
+    @Inject
+    private StudentService studentService;
     
-        QuestionAnswerEntity answer = em.find(QuestionAnswerEntity.class, userAnswer.getAnswerId());
-        ThemeQuestionEntity question = em.find(ThemeQuestionEntity.class, userAnswer.getQuestionId());
-        QuizInstanceEntity quiz = em.find(QuizInstanceEntity.class, userAnswer.getQuizId());
-        String userId = userAnswer.getUserId();
-        
-        if (answer == null || question == null || quiz == null) {
-            return;
-        }
+    @Inject
+    private QuizService quizService;
+    
+    @Override
+    public void saveUserAnswer(UserAnswer userAnswer, String deviceId) {
+        QuizInstanceEntity quiz = quizService.getActiveQuizEntity(deviceId, userAnswer.getRoomId())
+            .orElseThrow();
+        QuestionAnswerEntity answer = getAnswerEntity(userAnswer.getAnswerId())
+            .orElseThrow();
+        ThemeQuestionEntity question = getQuestionEntity(userAnswer.getQuestionId())
+            .orElseThrow();
+        StudentEntity student = studentService.getStudentEntityByDevice(deviceId)
+            .orElseThrow();
         
         UserAnswerEntity entity = new UserAnswerEntity();
         entity.setAnswer(answer);
         entity.setQuestion(question);
         entity.setQuiz(quiz);
-        entity.setUserId(userId);
+        entity.setStudent(student);
         
         try {
             em.getTransaction().begin();
             em.persist(entity);
-            em.flush();
+            // em.flush();
             em.getTransaction().commit();
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             e.printStackTrace();
         }
-    }
-    
-    @Override
-    public QuizSummary getUserSummary(String userId, String quizId) {
-        // EntityManager em = persistenceProviderBean.getEntityManager();
-    
-        TypedQuery<QuizQuestionEntity> query = em.createNamedQuery(QuizQuestionEntity.GET_QUIZ_QUESTIONS, QuizQuestionEntity.class);
-        query.setParameter("quizId", quizId);
-        List<QuizQuestionEntity> quizQuestions = query.getResultList();
-        
-        TypedQuery<UserAnswerEntity> userQuery = em.createNamedQuery(UserAnswerEntity.GET_USER_ANSWERS, UserAnswerEntity.class);
-        userQuery.setParameter("quizId", quizId);
-        userQuery.setParameter("userId", userId);
-        Map<String, UserAnswerEntity> userAnswers = userQuery.getResultStream()
-            .collect(Collectors.toMap(ua -> ua.getQuestion().getId(), ua -> ua));
-        
-        em.close();
-        
-        QuizSummary summary = new QuizSummary();
-        summary.setTotal(quizQuestions.size());
-        
-        int correct = quizQuestions.stream()
-            .map(question -> {
-                if (userAnswers.containsKey(question.getId())) {
-                    UserAnswerEntity userAnswer = userAnswers.get(question.getId());
-                    if (userAnswer.getAnswer().isCorrect()) {
-                        return 1;
-                    }
-                }
-                return 0;
-            }).reduce(0, Integer::sum);
-        summary.setCorrect(correct);
-        return summary;
     }
     
     @Override
@@ -97,7 +69,7 @@ public class AnswerServiceImpl implements AnswerService {
         Map<String, QuizSummary> userAnswersResult = new HashMap<>();
         
         userAnswers.forEach(userAnswer -> {
-            String userId = userAnswer.getUserId();
+            String userId = userAnswer.getStudent().getId();
             if (userAnswersResult.containsKey(userId)) {
                 QuizSummary summary = userAnswersResult.get(userId);
                 if (userAnswer.getAnswer().isCorrect()) {
@@ -120,5 +92,13 @@ public class AnswerServiceImpl implements AnswerService {
         TypedQuery<QuizQuestionEntity> query = em.createNamedQuery(QuizQuestionEntity.GET_QUIZ_QUESTIONS, QuizQuestionEntity.class);
         query.setParameter("quizId", quizId);
         return query.getResultList();
+    }
+    
+    private Optional<QuestionAnswerEntity> getAnswerEntity(String answerId) {
+        return Optional.ofNullable(em.find(QuestionAnswerEntity.class, answerId));
+    }
+    
+    private Optional<ThemeQuestionEntity> getQuestionEntity(String questionId) {
+        return Optional.ofNullable(em.find(ThemeQuestionEntity.class, questionId));
     }
 }

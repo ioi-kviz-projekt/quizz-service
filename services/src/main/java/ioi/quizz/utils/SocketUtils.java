@@ -55,6 +55,12 @@ public class SocketUtils {
         return message;
     }
     
+    public static SocketMessage pong() {
+        SocketMessage pong = new SocketMessage();
+        pong.setType(SocketMessageType.PONG.getType());
+        return pong;
+    }
+    
     private static <T> String getPayload(T payload) {
         return SerializationUtils.serializePayload(payload).orElseThrow();
     }

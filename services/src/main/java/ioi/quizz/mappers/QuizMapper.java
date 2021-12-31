@@ -12,14 +12,14 @@ public class QuizMapper {
     public static QuizInstance fromEntity(QuizInstanceEntity entity) {
         QuizInstance quiz = BaseMapper.fromEntity(entity, QuizInstance.class);
         quiz.setActive(entity.isActive());
-        quiz.setPasskey(entity.getPasskey());
+        quiz.setState(entity.getState());
+        quiz.setStateEndsAt(entity.getStateEndsAt());
         return quiz;
     }
     
     public static ThemeQuestion fromEntity(ThemeQuestionEntity entity) {
         ThemeQuestion question = BaseMapper.fromEntity(entity, ThemeQuestion.class);
-        question.setTextContent(entity.getTextContent());
-        question.setHtmlContent(entity.getHtmlContent());
+        question.setContent(entity.getContent());
         
         if (entity.getTheme() != null) {
             question.setThemeId(entity.getTheme().getId());
@@ -32,8 +32,7 @@ public class QuizMapper {
     public static QuestionAnswer fromEntity(QuestionAnswerEntity entity) {
         QuestionAnswer answer = BaseMapper.fromEntity(entity, QuestionAnswer.class);
         answer.setCorrect(entity.isCorrect());
-        answer.setHtmlContent(entity.getHtmlContent());
-        answer.setTextContent(entity.getTextContent());
+        answer.setContent(entity.getContent());
         
         if (entity.getQuestion() != null) {
             answer.setQuestionId(entity.getQuestion().getId());

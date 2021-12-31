@@ -3,12 +3,14 @@ package ioi.quizz.services.impl;
 import com.kumuluz.ee.rest.beans.QueryParameters;
 import com.kumuluz.ee.rest.utils.JPAUtils;
 import ioi.quizz.lib.DiscoverableTheme;
-import ioi.quizz.mappers.BaseMapper;
+import ioi.quizz.lib.ws.SocketMessage;
+import ioi.quizz.mappers.ThemeMapper;
 import ioi.quizz.persistence.DiscoveredThemeEntity;
 import ioi.quizz.persistence.StudentEntity;
 import ioi.quizz.persistence.ThemeEntity;
 import ioi.quizz.services.StudentService;
 import ioi.quizz.services.ThemeService;
+import ioi.quizz.workers.DiscoveryWorker;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -29,17 +31,17 @@ public class ThemeServiceImpl implements ThemeService {
     @Inject
     private StudentService studentService;
     
+    @Inject
+    private DiscoveryWorker discoveryWorker;
+    
     @Override
     public List<DiscoverableTheme> getThemes(String deviceId) {
         List<ThemeEntity> themes = JPAUtils.queryEntities(em, ThemeEntity.class, new QueryParameters());
         Map<String, DiscoveredThemeEntity> userThemes = getDiscoveredThemes(deviceId);
         
-        return themes.stream().map(t -> {
-            DiscoverableTheme theme = BaseMapper.fromEntity(t, DiscoverableTheme.class);
-            theme.setTitle(t.getTitle());
-            theme.setDiscovered(userThemes.containsKey(t.getId()));
-            return theme;
-        }).collect(Collectors.toList());
+        return themes.stream()
+            .map(t -> ThemeMapper.fromEntityToDiscoverable(t, userThemes.containsKey(t.getId())))
+            .collect(Collectors.toList());
     }
     
     @Override
@@ -55,6 +57,12 @@ public class ThemeServiceImpl implements ThemeService {
             em.getTransaction().begin();
             em.persist(entity);
             em.getTransaction().commit();
+    
+            SocketMessage message = new SocketMessage();
+            message.setType("DISCOVERY");
+            message.setClassName("string");
+            message.setPayload(theme.getId());
+            discoveryWorker.sendMessage(message, deviceId);
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             e.printStackTrace();

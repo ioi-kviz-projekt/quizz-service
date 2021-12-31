@@ -11,11 +11,8 @@ public class QuestionAnswerEntity extends BaseEntity {
     
     public static final String GET_ANSWERS = "QuestionAnswerEntity.getAnswers";
     
-    @Column(name = "html_content", columnDefinition = "TEXT")
-    private String htmlContent;
-    
-    @Column(name = "text_content", columnDefinition = "TEXT")
-    private String textContent;
+    @Column(name = "content", columnDefinition = "TEXT")
+    private String content;
     
     @Column(name = "correct")
     private boolean correct;
@@ -24,20 +21,12 @@ public class QuestionAnswerEntity extends BaseEntity {
     @JoinColumn(name = "question_id")
     private ThemeQuestionEntity question;
     
-    public String getHtmlContent() {
-        return htmlContent;
+    public String getContent() {
+        return content;
     }
     
-    public void setHtmlContent(String htmlContent) {
-        this.htmlContent = htmlContent;
-    }
-    
-    public String getTextContent() {
-        return textContent;
-    }
-    
-    public void setTextContent(String textContent) {
-        this.textContent = textContent;
+    public void setContent(String content) {
+        this.content = content;
     }
     
     public boolean isCorrect() {

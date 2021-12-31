@@ -2,15 +2,20 @@ package ioi.quizz.services.impl;
 
 import com.kumuluz.ee.logs.LogManager;
 import com.kumuluz.ee.logs.Logger;
+import com.mjamsek.rest.exceptions.RestException;
+import com.mjamsek.rest.exceptions.UnauthorizedException;
 import ioi.quizz.config.QuizzConfig;
+import ioi.quizz.lib.ActiveQuizState;
 import ioi.quizz.lib.QuizInstance;
 import ioi.quizz.lib.enums.QuizState;
-import ioi.quizz.lib.requests.QuizPasskey;
-import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.lib.ws.SocketMessage;
 import ioi.quizz.mappers.QuizMapper;
-import ioi.quizz.persistence.*;
+import ioi.quizz.persistence.QuizInstanceEntity;
+import ioi.quizz.persistence.QuizQuestionEntity;
+import ioi.quizz.persistence.RoomEntity;
+import ioi.quizz.persistence.ThemeQuestionEntity;
 import ioi.quizz.services.QuizService;
+import ioi.quizz.services.RoomService;
 import ioi.quizz.services.SocketService;
 import ioi.quizz.utils.SocketUtils;
 import ioi.quizz.utils.StringUtils;
@@ -22,7 +27,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.NotFoundException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -39,14 +43,28 @@ public class QuizServiceImpl implements QuizService {
     private SocketService socketService;
     
     @Inject
+    private RoomService roomService;
+    
+    @Inject
     private QuizzConfig quizzConfig;
     
     @Override
-    public QuizInstance createInstance() {
+    public QuizInstance createInstance(String roomId) {
+        var currentQuiz = getActiveInstanceInRoom(roomId);
+        if (currentQuiz.isPresent()) {
+            LOG.warn("Quiz cannot be created! There is already one active quiz in this room!");
+            throw new RestException("Already active quiz!");
+        }
+    
+        RoomEntity room = roomService.getRoomEntity(roomId)
+            .orElseThrow();
+        
         QuizInstanceEntity instance = new QuizInstanceEntity();
-        instance.setActive(false);
+        instance.setActive(true);
         instance.setPasskey(StringUtils.randomString(8));
         instance.setQuestionIndex(0);
+        instance.setRoom(room);
+        instance.setState(QuizState.ACTIVE);
         
         try {
             em.getTransaction().begin();
@@ -73,50 +91,8 @@ public class QuizServiceImpl implements QuizService {
     }
     
     @Override
-    public QuizInstance getQuizByPasskey(QuizPasskey passkey) {
-        TypedQuery<QuizInstanceEntity> query = em.createNamedQuery(QuizInstanceEntity.GET_BY_PASSKEY, QuizInstanceEntity.class);
-        query.setParameter("passkey", passkey.getPasskey());
-        
-        try {
-            QuizInstanceEntity entity = query.getSingleResult();
-            return QuizMapper.fromEntity(entity);
-        } catch (NoResultException e) {
-            throw new NotFoundException();
-        }
-    }
-    
-    @Override
     public Optional<QuizInstanceEntity> getQuizzEntity(String id) {
         return Optional.ofNullable(em.find(QuizInstanceEntity.class, id));
-    }
-    
-    @Override
-    public QuizSummary getQuizzSummary(String userId, String quizId) {
-        /*QuestionAnswerEntity answer = em.find(QuestionAnswerEntity.class, userAnswer.getAnswerId());
-        ThemeQuestionEntity question = em.find(ThemeQuestionEntity.class, userAnswer.getQuestionId());
-        QuizInstanceEntity quiz = em.find(QuizInstanceEntity.class, userAnswer.getQuizId());
-        String userId = userAnswer.getUserId();
-    
-        if (answer == null || question == null || quiz == null) {
-            throw new RuntimeException();
-        }
-    
-        UserAnswerEntity entity = new UserAnswerEntity();
-        entity.setAnswer(answer);
-        entity.setQuestion(question);
-        entity.setQuiz(quiz);
-        entity.setUserId(userId);
-    
-        try {
-            em.getTransaction().begin();
-            em.persist(entity);
-            em.flush();
-            em.getTransaction().commit();
-        } catch (PersistenceException e) {
-            em.getTransaction().rollback();
-            e.printStackTrace();
-        }*/
-        return null;
     }
     
     @Override
@@ -126,7 +102,6 @@ public class QuizServiceImpl implements QuizService {
         // update quiz status in database
         try {
             em.getTransaction().begin();
-            quiz.setActive(true);
             quiz.setQuestionIndex(0);
             quiz.setState(QuizState.WAITING);
             Date stateEndsAt = TimeUtils.getSecondsAfterNow(quizzConfig.getLoadingDuration());
@@ -134,13 +109,45 @@ public class QuizServiceImpl implements QuizService {
             em.merge(quiz);
             em.flush();
             em.getTransaction().commit();
-    
+            
             // send broadcast to clients, that quiz has started
             SocketMessage startMessage = SocketUtils.start(stateEndsAt);
             socketService.broadcast(startMessage);
             
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
+            throw new RuntimeException(e);
+        }
+    }
+    
+    @Override
+    public ActiveQuizState getActiveQuizState(String deviceId, String roomId) {
+        // TODO: finish
+        QuizInstanceEntity quiz = getActiveInstanceInRoom(roomId)
+            .orElseThrow(() -> new UnauthorizedException("No active quiz"));
+        
+        ActiveQuizState quizState = new ActiveQuizState(QuizMapper.fromEntity(quiz));
+        if (quiz.getState().equals(QuizState.QUESTION)) {
+        
+        }
+        return quizState;
+    }
+    
+    @Override
+    public Optional<QuizInstanceEntity> getActiveQuizEntity(String deviceId, String roomId) {
+        return Optional.empty();
+    }
+    
+    private Optional<QuizInstanceEntity> getActiveInstanceInRoom(String roomId) {
+        TypedQuery<QuizInstanceEntity> query = em.createNamedQuery(QuizInstanceEntity.GET_ACTIVE_IN_ROOM, QuizInstanceEntity.class);
+        query.setParameter("roomId", roomId);
+        
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } catch (PersistenceException e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
         }
     }

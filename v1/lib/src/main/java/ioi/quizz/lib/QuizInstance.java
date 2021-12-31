@@ -1,10 +1,16 @@
 package ioi.quizz.lib;
 
+import ioi.quizz.lib.enums.QuizState;
+
+import java.util.Date;
+
 public class QuizInstance extends BaseType {
     
     private boolean active;
     
-    private String passkey;
+    private QuizState state;
+    
+    private Date stateEndsAt;
     
     public boolean isActive() {
         return active;
@@ -14,12 +20,19 @@ public class QuizInstance extends BaseType {
         this.active = active;
     }
     
-    public String getPasskey() {
-        return passkey;
+    public QuizState getState() {
+        return state;
     }
     
-    public void setPasskey(String passkey) {
-        this.passkey = passkey;
+    public void setState(QuizState state) {
+        this.state = state;
     }
     
+    public Date getStateEndsAt() {
+        return stateEndsAt;
+    }
+    
+    public void setStateEndsAt(Date stateEndsAt) {
+        this.stateEndsAt = stateEndsAt;
+    }
 }
