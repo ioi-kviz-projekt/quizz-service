@@ -2,24 +2,26 @@ package ioi.quizz.services.impl;
 
 import com.kumuluz.ee.logs.LogManager;
 import com.kumuluz.ee.logs.Logger;
+import com.mjamsek.rest.exceptions.NotFoundException;
 import com.mjamsek.rest.exceptions.RestException;
-import com.mjamsek.rest.exceptions.UnauthorizedException;
 import ioi.quizz.config.QuizzConfig;
 import ioi.quizz.lib.ActiveQuizState;
+import ioi.quizz.lib.QuestionAnswer;
 import ioi.quizz.lib.QuizInstance;
 import ioi.quizz.lib.enums.QuizState;
+import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.lib.ws.SocketMessage;
 import ioi.quizz.mappers.QuizMapper;
-import ioi.quizz.persistence.QuizInstanceEntity;
-import ioi.quizz.persistence.QuizQuestionEntity;
-import ioi.quizz.persistence.RoomEntity;
-import ioi.quizz.persistence.ThemeQuestionEntity;
+import ioi.quizz.persistence.*;
 import ioi.quizz.services.QuizService;
 import ioi.quizz.services.RoomService;
 import ioi.quizz.services.SocketService;
+import ioi.quizz.services.StudentService;
 import ioi.quizz.utils.SocketUtils;
 import ioi.quizz.utils.StringUtils;
 import ioi.quizz.utils.TimeUtils;
+import ioi.quizz.workers.QuestionWorker;
+import ioi.quizz.workers.QuizWorker;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -30,6 +32,7 @@ import javax.persistence.TypedQuery;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequestScoped
 public class QuizServiceImpl implements QuizService {
@@ -44,6 +47,15 @@ public class QuizServiceImpl implements QuizService {
     
     @Inject
     private RoomService roomService;
+    
+    @Inject
+    private StudentService studentService;
+    
+    @Inject
+    private QuizWorker quizWorker;
+    
+    @Inject
+    private QuestionWorker questionWorker;
     
     @Inject
     private QuizzConfig quizzConfig;
@@ -74,13 +86,14 @@ public class QuizServiceImpl implements QuizService {
             TypedQuery<ThemeQuestionEntity> query = em.createNamedQuery(ThemeQuestionEntity.GET_RAND_QS, ThemeQuestionEntity.class);
             List<ThemeQuestionEntity> questions = query.getResultList();
             
-            questions.forEach(q -> {
+            for (int i = 0; i < questions.size(); i++) {
+                ThemeQuestionEntity q = questions.get(i);
                 QuizQuestionEntity question = new QuizQuestionEntity();
                 question.setQuiz(instance);
-                question.setPosition(100);
+                question.setPosition(i + 1);
                 question.setQuestion(q);
                 em.persist(question);
-            });
+            }
             
             em.getTransaction().commit();
             return QuizMapper.fromEntity(instance);
@@ -96,6 +109,34 @@ public class QuizServiceImpl implements QuizService {
     }
     
     @Override
+    public QuizSummary getQuizSummary(String deviceId, String quizId) {
+        StudentEntity student = studentService.getStudentEntityByDevice(deviceId)
+            .orElseThrow();
+        
+        List<QuizQuestionEntity> quizQuestions = getQuizQuestions(quizId);
+        QuizSummary summary = QuizSummary.empty(quizQuestions.size());
+    
+        TypedQuery<UserAnswerEntity> userQuery = em.createNamedQuery(UserAnswerEntity.GET_USER_ANSWERS, UserAnswerEntity.class);
+        userQuery.setParameter("quizId", quizId);
+        userQuery.setParameter("studentId", student.getId());
+        List<UserAnswerEntity> userAnswers = userQuery.getResultList();
+    
+        userAnswers.forEach(userAnswer -> {
+            if (userAnswer.getAnswer().isCorrect()) {
+                summary.addCorrect(1);
+            }
+        });
+        
+        return summary;
+    }
+    
+    private List<QuizQuestionEntity> getQuizQuestions(String quizId) {
+        TypedQuery<QuizQuestionEntity> query = em.createNamedQuery(QuizQuestionEntity.GET_QUIZ_QUESTIONS, QuizQuestionEntity.class);
+        query.setParameter("quizId", quizId);
+        return query.getResultList();
+    }
+    
+    @Override
     public void startQuiz(String id) {
         QuizInstanceEntity quiz = getQuizzEntity(id).orElseThrow();
         
@@ -104,10 +145,9 @@ public class QuizServiceImpl implements QuizService {
             em.getTransaction().begin();
             quiz.setQuestionIndex(0);
             quiz.setState(QuizState.WAITING);
+            quiz.setActive(true);
             Date stateEndsAt = TimeUtils.getSecondsAfterNow(quizzConfig.getLoadingDuration());
             quiz.setStateEndsAt(stateEndsAt);
-            em.merge(quiz);
-            em.flush();
             em.getTransaction().commit();
             
             // send broadcast to clients, that quiz has started
@@ -122,20 +162,34 @@ public class QuizServiceImpl implements QuizService {
     
     @Override
     public ActiveQuizState getActiveQuizState(String deviceId, String roomId) {
-        // TODO: finish
         QuizInstanceEntity quiz = getActiveInstanceInRoom(roomId)
-            .orElseThrow(() -> new UnauthorizedException("No active quiz"));
+            .orElseThrow(() -> new NotFoundException("No active quiz"));
         
         ActiveQuizState quizState = new ActiveQuizState(QuizMapper.fromEntity(quiz));
-        if (quiz.getState().equals(QuizState.QUESTION)) {
         
+        if (quiz.getState().equals(QuizState.QUESTION)) {
+            quizState.setEndsAt(quiz.getStateEndsAt());
+            
+            QuizQuestionEntity currentQuestion = quizWorker.getCurrentQuestion(quiz.getId())
+                .orElseThrow();
+            quizState.setQuestion(QuizMapper.fromEntity(currentQuestion.getQuestion()));
+            
+            List<QuestionAnswer> answers = questionWorker.getQuestionAnswers(currentQuestion.getQuestion().getId())
+                .map(QuizMapper::fromEntity)
+                .collect(Collectors.toList());
+            quizState.setAnswers(answers);
         }
+        
+        if (quiz.getState().equals(QuizState.WAITING)) {
+            quizState.setEndsAt(quiz.getStateEndsAt());
+        }
+        
         return quizState;
     }
     
     @Override
     public Optional<QuizInstanceEntity> getActiveQuizEntity(String deviceId, String roomId) {
-        return Optional.empty();
+        return getActiveInstanceInRoom(roomId);
     }
     
     private Optional<QuizInstanceEntity> getActiveInstanceInRoom(String roomId) {

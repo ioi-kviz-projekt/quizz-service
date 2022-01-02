@@ -51,6 +51,8 @@ quizz:
   durations:
     loading: 3
     question: 5
+  pings:
+    enabled: false
   groups:
     members:
       limit: 4

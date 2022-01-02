@@ -2,6 +2,7 @@ package ioi.quizz.services;
 
 import ioi.quizz.lib.ActiveQuizState;
 import ioi.quizz.lib.QuizInstance;
+import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.persistence.QuizInstanceEntity;
 
 import java.util.Optional;
@@ -17,5 +18,7 @@ public interface QuizService {
     Optional<QuizInstanceEntity> getActiveQuizEntity(String deviceId, String roomId);
     
     Optional<QuizInstanceEntity> getQuizzEntity(String id);
+    
+    QuizSummary getQuizSummary(String deviceId, String quizId);
     
 }

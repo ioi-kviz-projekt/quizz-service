@@ -1,10 +1,13 @@
 INSERT INTO rooms(id, created_at, updated_at, admin_id, room_number) VALUES ('418a3424-a827-471b-b189-f0f91c3a65ed', NOW(), NOW(), '', '123');
+INSERT INTO students(id, created_at, updated_at, device_id, full_name) VALUES ('67497408-0a90-4881-aca2-3f190f852e9b', NOW(), NOW(), '3194635b457ad1f4', 'mihaj');
 
 INSERT INTO themes(id, created_at, updated_at, position, title, latitude, longitude, area) VALUES ('28fa3415-f898-4a27-93fc-b410ae5242f3', NOW(), NOW(), 1, 'Tematika 1', 46.05020349076014, 14.487366891776727, 2.0);
 INSERT INTO themes(id, created_at, updated_at, position, title, latitude, longitude, area) VALUES ('2f304a76-e062-4ad7-a26d-e0550b4716b2', NOW(), NOW(), 3, 'Tematika 2', 46.05039988170667, 14.487465462549464, 2.0);
 INSERT INTO themes(id, created_at, updated_at, position, title, latitude, longitude, area) VALUES ('6e3c260a-4918-4ea9-97c1-894146bcf48c', NOW(), NOW(), 2, 'Tematika 3', 0.0, 0.0, 2.0);
 INSERT INTO themes(id, created_at, updated_at, position, title, latitude, longitude, area) VALUES ('14c4f591-74e8-44c3-9de4-ec706f5912be', NOW(), NOW(), 4, 'Tematika 4', 0.0, 0.0, 2.0);
 INSERT INTO themes(id, created_at, updated_at, position, title, latitude, longitude, area) VALUES ('f56a2afa-e53e-40cb-9d18-fdc31eaab8d4', NOW(), NOW(), 5, 'Tematika 5', 0.0, 0.0, 2.0);
+
+INSERT INTO discovered_themes(id, created_at, updated_at, student_id, theme_id) VALUES ('8792de9d-a7c6-43dc-951a-14346abfa2cb', NOW(), NOW(), '67497408-0a90-4881-aca2-3f190f852e9b', '28fa3415-f898-4a27-93fc-b410ae5242f3');
 
 INSERT INTO theme_questions(id, created_at, updated_at, content, theme_id) VALUES ('0b247aa7-e1ef-4015-a2b2-5e9f02bcc2c8', NOW(), NOW(), 'Vprašanje 1', '28fa3415-f898-4a27-93fc-b410ae5242f3');
 INSERT INTO theme_questions(id, created_at, updated_at, content, theme_id) VALUES ('38a691ec-f123-4682-a96f-b5003930d31d', NOW(), NOW(), 'Vprašanje 2', '28fa3415-f898-4a27-93fc-b410ae5242f3');

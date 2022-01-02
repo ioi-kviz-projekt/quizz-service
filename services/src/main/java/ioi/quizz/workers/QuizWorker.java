@@ -9,6 +9,7 @@ import ioi.quizz.lib.responses.QuestionResponse;
 import ioi.quizz.lib.ws.SocketMessage;
 import ioi.quizz.mappers.QuizMapper;
 import ioi.quizz.persistence.QuizInstanceEntity;
+import ioi.quizz.persistence.QuizQuestionEntity;
 import ioi.quizz.persistence.ThemeQuestionEntity;
 import ioi.quizz.services.SocketService;
 import ioi.quizz.utils.SocketUtils;
@@ -17,6 +18,7 @@ import ioi.quizz.utils.TimeUtils;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 import java.util.Date;
@@ -53,15 +55,10 @@ public class QuizWorker {
             quiz.setState(QuizState.FINISHED);
             quiz.setStateEndsAt(null);
             quiz.setActive(false);
-            // em.merge(quiz);
-            // em.flush();
             em.getTransaction().commit();
-    
-            SocketMessage finishMessage = SocketUtils.finish();
+            
+            SocketMessage finishMessage = SocketUtils.finish(quiz.getId());
             socketService.broadcast(finishMessage);
-    
-            // TODO: summary
-            // sendQuizSummary(quiz.getId());
         } catch (PersistenceException e) {
             em.getTransaction().rollback();
             e.printStackTrace();
@@ -100,8 +97,6 @@ public class QuizWorker {
             quiz.setState(QuizState.QUESTION);
             Date stateEndsAt = TimeUtils.getSecondsAfterNow(quizzConfig.getQuestionDuration());
             quiz.setStateEndsAt(stateEndsAt);
-            // em.merge(quiz);
-            // em.flush();
             em.getTransaction().commit();
     
             List<QuestionAnswer> answers = questionWorker.getQuestionAnswers(question.getId())
@@ -122,6 +117,19 @@ public class QuizWorker {
         }
     }
     
+    public Optional<QuizQuestionEntity> getCurrentQuestion(String quizId) {
+        TypedQuery<QuizQuestionEntity> query = em.createNamedQuery(QuizQuestionEntity.GET_CURRENT_QUESTION, QuizQuestionEntity.class);
+        query.setParameter("quizId", quizId);
+        try {
+            return Optional.of(query.getSingleResult());
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } catch (PersistenceException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+    
     public void startWaiting(QuizInstanceEntity quiz) {
         LOG.info("Quiz ({}) is going from QUESTION to WAITING...", quiz.getId());
         try {
@@ -129,8 +137,6 @@ public class QuizWorker {
             quiz.setState(QuizState.WAITING);
             Date stateEndsAt = TimeUtils.getSecondsAfterNow(quizzConfig.getLoadingDuration());
             quiz.setStateEndsAt(stateEndsAt);
-            // em.merge(quiz);
-            // em.flush();
             em.getTransaction().commit();
     
             // update state via message

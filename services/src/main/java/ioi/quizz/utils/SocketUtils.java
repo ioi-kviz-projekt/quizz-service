@@ -42,9 +42,11 @@ public class SocketUtils {
         return message;
     }
     
-    public static SocketMessage finish() {
+    public static SocketMessage finish(String quizId) {
         SocketMessage message = new SocketMessage();
         message.setType(SocketMessageType.FINISHED.getType());
+        message.setPayload(quizId);
+        message.setClassName("string");
         return message;
     }
     

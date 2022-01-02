@@ -19,11 +19,13 @@ public class ActiveQuizState extends QuizInstance {
     }
     
     public ActiveQuizState(QuizInstance quiz) {
+        this.setId(quiz.getId());
+        this.setCreatedAt(quiz.getCreatedAt());
+        this.setUpdatedAt(quiz.getUpdatedAt());
+        
         this.setState(quiz.getState());
         this.setStateEndsAt(quiz.getStateEndsAt());
-        this.setId(quiz.getId());
-        this.setUpdatedAt(quiz.getUpdatedAt());
-        this.setCreatedAt(quiz.getCreatedAt());
+        this.setActive(quiz.isActive());
     }
     
     public ThemeQuestion getQuestion() {

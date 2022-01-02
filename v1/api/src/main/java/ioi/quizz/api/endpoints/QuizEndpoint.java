@@ -2,6 +2,7 @@ package ioi.quizz.api.endpoints;
 
 import ioi.quizz.config.QuizzConstants;
 import ioi.quizz.lib.QuizInstance;
+import ioi.quizz.lib.responses.QuizSummary;
 import ioi.quizz.services.QuizService;
 
 import javax.enterprise.context.RequestScoped;
@@ -39,6 +40,14 @@ public class QuizEndpoint {
     public Response startQuizz(@PathParam("id") String id) {
         quizService.startQuiz(id);
         return Response.noContent().build();
+    }
+    
+    @GET
+    @Path("/summary/{id}")
+    public Response getQuizSummary(@PathParam("id") String quizId,
+                                   @HeaderParam(QuizzConstants.DEVICE_ID_HEADER) String deviceId) {
+        QuizSummary summary = quizService.getQuizSummary(deviceId, quizId);
+        return Response.ok(summary).build();
     }
     
 }
