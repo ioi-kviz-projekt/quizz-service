@@ -1,0 +1,36 @@
+version: "3.3"
+
+networks:
+  quizz-net:
+
+services:
+  postgres:
+    image: postgres:12
+    environment:
+      POSTGRES_DB: quizz-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    networks:
+      - quizz-net
+    restart: always
+  quizz-service:
+    image: quizz-service:latest
+    environment:
+      KUMULUZEE_SERVER_BASEURL: http://localhost:8080
+      KUMULUZEE_DATASOURCES0_CONNECTIONURL: jdbc:postgresql://postgres:5432/quizz-db
+      KUMULUZEE_DATASOURCES0_PASSWORD: postgres
+      KUMULUZEE_DATASOURCES0_USERNAME: postgres
+      CONFIG_PAGES_TEMPLATES_CACHEENABLED: true
+      CONFIG_SESSION_COOKIE_SECURE: true
+    ports:
+      - "8080:8080"
+    networks:
+      - quizz-net
+    depends_on:
+      - postgres
+    restart: always
+
+volumes:
+  pg-data:
