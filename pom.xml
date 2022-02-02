@@ -240,4 +240,11 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <repositories>
+        <repository>
+            <id>mjamsek-beta</id>
+            <url>https://nexus.mjamsek.com/repository/mjamsek-beta</url>
+        </repository>
+    </repositories>
 </project>
